@@ -21,6 +21,7 @@
   BinParse.c
   ElfParse.c
   GetPayloadType.c
+  DeregisterServices.c
 
 [Packages]
   MdePkg/MdePkg.dec

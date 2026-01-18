@@ -409,6 +409,7 @@ LoadStage2Elf (
   Print(L"-> executing stage2 at 0x%lx, good night\n", Entry);
 
   VOID (*Jump)(VOID) = (VOID (*)(VOID))(UINTN)Entry;
+  PrepareHandoff();
   Jump();
 
   Print(L"-> stage2 returned\n");

@@ -117,4 +117,10 @@ LoadStage2Elf (
   IN UINT64            Size  
   );
 
+EFI_STATUS
+EFIAPI
+PrepareHandoff (
+  VOID
+  );  
+
 #endif // _EUCALYPTUS_H_

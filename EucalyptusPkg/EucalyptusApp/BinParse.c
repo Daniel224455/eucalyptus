@@ -332,6 +332,7 @@ Stage2ParseAndLoad (
 
   VOID (*Entry)(VOID) = (VOID (*)(VOID))Base;
   Print(L"-> executing stage2 at 0x%p, good night\n", Base);
+  PrepareHandoff();
   Entry();
 
   while (TRUE);
