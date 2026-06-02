@@ -6,6 +6,32 @@
 #include "Eucalyptus.h"
 #include <Library/UefiApplicationEntryPoint.h>
 
+STATIC
+UINTN
+GetCurrentExceptionLevel (
+  VOID
+  )
+{
+  UINTN El;
+
+  //
+  // Read CurrentEL system register.
+  // bits [3:2] hold the EL value, encoded as:
+  //   0b00 = EL0
+  //   0b01 = EL1
+  //   0b10 = EL2
+  //   0b11 = EL3
+  //
+  // so we shift right by 2 and mask with 0x3.
+  //
+  UINT64 CurrentElReg;
+
+  __asm__ volatile ("mrs %0, CurrentEL" : "=r" (CurrentElReg));
+  El = (UINTN)((CurrentElReg >> 2) & 0x3U);
+
+  return El;
+}
+
 /**
   The Entry Point for Eucalyptus.
 
@@ -32,34 +58,28 @@ UefiMain (
   Print(L"github.com/Daniel224455\n");
   Print(L"============================\n");
 
-  CheckPrivileges();  
+  UINTN El = GetCurrentExceptionLevel();
 
-  EUC_CONFIG Cfg = LoadConfig(ImageHandle);
-  EUC_MODE Type = GetPayloadStage1(ImageHandle);
-  
-  switch (Type) {
-    case MODE_BIN:
-      Stage1ParseAndLoad(ImageHandle, Cfg.RelocBase, Cfg.RelocSize);
-      break;
-  
-    case MODE_ELF:
-      LoadStage1Elf(ImageHandle, Cfg.RelocBase, Cfg.RelocSize);
-      break;
-  
-    default:
-      Print(L"-> No payload detected\n");
-      return EFI_NOT_FOUND;
+  if (El == 3) {
+    // uefi cannot run in el3, how did you get here
+    Print(L"-> running in EL3, how did you get here?\n");
+  } else if (El == 1) {
+    Print(L"-> running in EL1\n"); 
+  } else if (El == 2) {
+    Print(L"-> running in EL2\n");  
   }
 
-  EUC_MODE Type2 = GetPayloadStage2(ImageHandle);
+  EUC_CONFIG Cfg = LoadConfig(ImageHandle);
 
-  switch (Type2) {
+  EUC_MODE Type = GetPayload(ImageHandle);
+
+  switch (Type) {
     case MODE_BIN:
-      Stage2ParseAndLoad(ImageHandle, Cfg.RelocBase, Cfg.RelocSize);
+      PayloadBinParseAndLoad(ImageHandle, Cfg.RelocBase, Cfg.RelocSize);
       break;
   
     case MODE_ELF:
-      LoadStage2Elf(ImageHandle, Cfg.RelocBase, Cfg.RelocSize);
+      PayloadElfParseAndLoad(ImageHandle, Cfg.RelocBase, Cfg.RelocSize);
       break;
   
     default:

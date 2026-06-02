@@ -17,7 +17,6 @@
 [Sources]
   Eucalyptus.c
   ReadConfig.c
-  EscalatePrivilege.c
   BinParse.c
   ElfParse.c
   GetPayloadType.c

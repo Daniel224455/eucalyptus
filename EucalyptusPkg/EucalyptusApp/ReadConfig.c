@@ -87,6 +87,11 @@ LoadConfig (
   
   Print(L"-> config: base=0x%lx size=0x%lx\n",
         Cfg.RelocBase, Cfg.RelocSize);
+
+  if (Cfg.RelocBase == 0 || Cfg.RelocSize == 0) {
+    Print(L"ERROR: invalid base or size! please verify the line endings in the eucalyptus config.\n");
+    CpuDeadLoop();
+  }
   
   return Cfg;
 }

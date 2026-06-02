@@ -65,10 +65,6 @@ typedef struct {
 //
 // Function prototypes
 //
-UINTN 
-CheckPrivileges (
-  VOID
-  );
 
 EUC_CONFIG
 LoadConfig (
@@ -76,18 +72,13 @@ LoadConfig (
   );
 
 EUC_MODE
-GetPayloadStage1 (
-  IN EFI_HANDLE ImageHandle
-  );
-
-EUC_MODE
-GetPayloadStage2 (
+GetPayload (
   IN EFI_HANDLE ImageHandle
   );  
 
 EFI_STATUS
 EFIAPI
-Stage1ParseAndLoad (
+PayloadBinParseAndLoad (
   IN EFI_HANDLE        ImageHandle,
   IN UINT64            Base,
   IN UINT64            Size
@@ -95,23 +86,7 @@ Stage1ParseAndLoad (
 
 EFI_STATUS
 EFIAPI
-Stage2ParseAndLoad (
-  IN EFI_HANDLE        ImageHandle,
-  IN UINT64            Base,
-  IN UINT64            Size
-  );
-
-EFI_STATUS
-EFIAPI
-LoadStage1Elf (
-  IN EFI_HANDLE        ImageHandle,
-  IN UINT64            Base,
-  IN UINT64            Size  
-  );
-
-EFI_STATUS
-EFIAPI
-LoadStage2Elf (
+PayloadElfParseAndLoad (
   IN EFI_HANDLE        ImageHandle,
   IN UINT64            Base,
   IN UINT64            Size  

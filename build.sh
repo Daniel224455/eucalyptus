@@ -1,42 +1,24 @@
 #!/bin/bash
 set -e
 
-if [ -z "$EUC_ENV_READY" ]; then
-    echo "ERROR: env.sh has not been sourced."
-    echo "Run:  source env.sh"
-    exit 1
-fi
-
 PAYLOAD_TYPE=$1
-BOARD=$2
+PLATFORM=$2
 
-if [ "$PAYLOAD_TYPE" == "bin" ]; then
-    PAYLOAD_FILE="Payloads/stage2.bin"
-else
-    PAYLOAD_FILE="Payloads/stage2.elf"
+if [ -z "$EDK_TOOLS_PATH" ]; then
+    exec bash -c "
+        export PACKAGES_PATH=$PWD/edk2:$PWD
+        export WORKSPACE=$PWD
+        source $PWD/edk2/edksetup.sh
+        exec bash '$0' '$1' '$2'
+    " _ "$PAYLOAD_TYPE" "$PLATFORM"
 fi
 
 build -s -n 0 -a AARCH64 -t CLANGPDB -p EucalyptusPkg/EucalyptusPkg.dsc || exit 1
 
-SIZE=50
-dd if=/dev/zero of=eucalyptus.bin bs=1M count=$SIZE
-mkfs.vfat -F 32 -n "EUCALYPTUS" eucalyptus.bin
+rm -rf EucalyptusFs
+mkdir -p EucalyptusFs/EFI/BOOT
+cp Build/EucalyptusPkg/DEBUG_CLANGPDB/AARCH64/Eucalyptus.efi EucalyptusFs/EFI/BOOT/BOOTAA64.EFI
+cp Payloads/payload.$PAYLOAD_TYPE EucalyptusFs/
+cp Configs/$PLATFORM/eucalyptus.cfg EucalyptusFs/
 
-sudo mount -o loop eucalyptus.bin /mnt
-sudo mkdir -p /mnt/EFI/BOOT
-sudo cp Build/EucalyptusPkg/DEBUG_CLANGPDB/AARCH64/Eucalyptus.efi /mnt/EFI/BOOT/BOOTAA64.EFI
-sudo cp "$PAYLOAD_FILE" /mnt
-
-sudo sh -c "cat \"Configs/$BOARD/eucalyptus.cfg\" > \"/mnt/eucalyptus.cfg\""
-
-cd Stage1/$BOARD
-make
-cd ../..
-if [ "$PAYLOAD_TYPE" == "bin" ]; then
-    sudo cp "Stage1/$BOARD/stage1.bin" /mnt
-else
-    sudo cp "Stage1/$BOARD/stage1.elf" /mnt    
-fi    
-sudo umount /mnt
-
-echo "Build complete for $BOARD with $PAYLOAD_TYPE payload"
+echo "Build complete for $PLATFORM with $PAYLOAD_TYPE payload"
